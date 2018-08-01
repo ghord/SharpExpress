@@ -1,0 +1,497 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<types xmlns="http://hordynski.pl/SharpExpress/SyntaxNodes.xsd">
+
+    <!-- DataType -->
+    <type name="DataType" abstract="true">
+
+    </type>
+
+    <type name="AggregationDataType" abstract="true" base="DataType">
+        <property name="ElementType" type="DataType" />
+        <property name="Bounds" type="Bounds" />
+    </type>
+
+    <type name="AggregateDataType" base="AggregationDataType">
+        <overrideProperty name="Bounds" value="null" />
+        <property name="TypeLabel" type="TypeLabelReference" />
+    </type>
+
+    <type name="ListDataType" base="AggregationDataType">
+        <property name="IsUnique" type="bool" />
+    </type>
+
+    <type name="ArrayDataType" base="AggregationDataType">
+        <property name="IsOptional" type="bool" />
+        <property name="IsUnique" type="bool" />
+    </type>
+
+    <type name="BagDataType" base="AggregationDataType">
+    </type>
+
+    <type name="SetDataType" base="AggregationDataType">
+    </type>
+
+
+    <type name="ConstructedDataType" base="DataType" abstract="true">
+        <property name="IsExtensible" type="bool" />
+    </type>
+
+    <type name="EnumerationDataType" base="ConstructedDataType">
+        <property name="Items" type="EnumerationDeclaration" multiple="true" />
+        <property name="BasedOn" type="TypeReference" />
+    </type>
+
+    <type name="SelectDataType" base="ConstructedDataType">
+        <property name="Items" type="ReferenceDataType" multiple="true" />
+        <property name="BasedOn" type="TypeReference" />
+        <property name="IsGenericIdentity" type="bool" />
+    </type>
+
+    <type name="ReferenceDataType" base="DataType">
+        <property name="Reference" type="Reference" />
+    </type>
+
+    <type name="SimpleDataType" base="DataType" abstract="true">
+    </type>
+
+    <type name="StringDataType" base="SimpleDataType">
+        <property name="Width" type="Expression" />
+        <property name="IsFixed" type="bool" />
+    </type>
+
+    <type name="BinaryDataType" base="SimpleDataType">
+        <property name="Width" type="Expression" />
+        <property name="IsFixed" type="bool" />
+    </type>
+
+    <type name="RealDataType" base="SimpleDataType">
+        <property name="Precision" type="Expression" />
+    </type>
+
+    <type name="BooleanDataType" base="SimpleDataType">
+    </type>
+
+    <type name="LogicalDataType" base="SimpleDataType">
+    </type>
+
+    <type name="IntegerDataType" base="SimpleDataType">
+    </type>
+
+    <type name="NumberDataType" base="SimpleDataType">
+    </type>
+
+    <type name="GenericDataType" base="DataType">
+        <property name="TypeLabel" type="TypeLabelReference"/>
+    </type>
+
+    <type name="GenericEntityDataType" base="DataType">
+        <property name="TypeLabel" type="TypeLabelReference"/>
+    </type>
+
+    <!-- Declarations -->
+
+    <type name="Declaration" abstract="true">
+        <property name="Name" type="string" />
+    </type>
+
+    <type name="AlgorithmDeclaration" base="Declaration" abstract="true">
+        <property name="Declarations" type="Declaration" multiple="true"/>
+        <property name="Constants" type="ConstantDeclaration" multiple="true"/>
+        <property name="LocalVariables" type="VariableDeclaration" multiple="true" />
+        <property name="Statements" type="Statement" multiple="true"/>
+    </type>
+
+    <type name="SchemaDeclaration" base="Declaration">
+        <property name="SchemaVersionId" type="string"/>
+        <property name="InterfaceSpecifications" type="InterfaceSpecification" multiple="true"/>
+        <property name="Constants" type="ConstantDeclaration" multiple="true"/>
+        <property name="Declarations" type="Declaration" multiple="true"/>
+    </type>
+
+    <type name="TypeDeclaration" base="Declaration">
+        <property name="UnderlyingType" type="DataType" />
+        <property name="DomainRules" type="DomainRuleDeclaration" multiple="true"/>
+    </type>
+
+    <type name="AttributeDeclaration" base="Declaration" abstract="true">
+        <property name="RedeclaredAttribute" type="QualifiedReference" />
+        <property name="Type" type="DataType" />
+    </type>
+
+
+    <type name="ExplicitAttributeDeclaration" base="AttributeDeclaration">
+        <property name="IsOptional" type="bool"/>
+    </type>
+
+    <type name="InverseAttributeDeclaration" base="AttributeDeclaration">
+        <property name="ForEntity" type="EntityReference" />
+        <property name="ForAttribute" type="AttributeReference"/>
+    </type>
+
+    <type name="DerivedAttributeDeclaration" base="AttributeDeclaration">
+        <property name="Value" type="Expression" />
+    </type>
+
+    <type name="EntityDeclaration" base="Declaration">
+        <property name="IsAbstract" type="bool" />
+        <property name="IsAbstractSupertype" type="bool"/>
+        <property name="Supertypes" type="EntityReference" multiple="true"/>
+        <property name="Subtype" type="TypeExpression" />
+        <property name="ExplicitAttributes" type="ExplicitAttributeDeclaration" multiple="true"/>
+        <property name="DerivedAttributes" type="DerivedAttributeDeclaration" multiple="true"/>
+        <property name="InverseAttributes" type="InverseAttributeDeclaration" multiple="true" />
+        <property name="UniqueRules" type="UniqueRuleDeclaration" multiple="true"/>
+        <property name="DomainRules" type="DomainRuleDeclaration" multiple="true" />
+    </type>
+
+    <type name="ConstantDeclaration" base="Declaration">
+        <property name="Type" type="DataType"/>
+        <property name="Value" type="Expression"/>
+    </type>
+
+    <type name="EnumerationDeclaration" base="Declaration">
+    </type>
+
+    <type name="ProcedureDeclaration" base="AlgorithmDeclaration">
+        <property name="Parameters" type="ParameterDeclaration" multiple="true" />
+    </type>
+
+    <type name="FunctionDeclaration" base="AlgorithmDeclaration">
+        <property name="Parameters" type="ParameterDeclaration" multiple="true" />
+        <property name="ReturnType" type="DataType" />
+    </type>
+
+    <type name="RuleDeclaration" base="AlgorithmDeclaration">
+        <property name="Populations" type="VariableDeclaration" multiple="true"/>
+        <property name="DomainRules" type="DomainRuleDeclaration" multiple="true"/>
+    </type>
+
+    <type name="LocalRuleDeclaration" base="Declaration" abstract="true">
+
+    </type>
+
+    <type name="DomainRuleDeclaration" base="LocalRuleDeclaration">
+        <property name="Expression" type="Expression" />
+    </type>
+
+    <type name="UniqueRuleDeclaration" base="LocalRuleDeclaration">
+        <property name="Expressions" type="Expression" multiple="true"/>
+    </type>
+
+    <type name="ParameterDeclaration" base="Declaration">
+        <property name="Type" type="DataType" />
+        <property name="IsVariable" type="bool"/>
+    </type>
+
+    <type name="VariableDeclaration" base="Declaration">
+        <property name="Type" type="DataType"/>
+        <property name="InitialValue" type="Expression"/>
+    </type>
+
+    <type name="SubtypeConstraintDeclaration" base="Declaration">
+    </type>
+
+    <type name="TypeLabelDeclaration" base="Declaration">
+    </type>
+
+    <!-- Expressions -->
+    <type name="Expression" abstract="true">
+
+    </type>
+
+    <type name="BinaryExpression" abstract="true" base="Expression">
+        <property name="Left" type="Expression" />
+        <property name="Right" type="Expression" />
+    </type>
+
+    <type name="LessThanExpression" base="BinaryExpression" />
+    <type name="GreaterThanExpression" base="BinaryExpression" />
+    <type name="LessThanOrEqualExpression" base="BinaryExpression" />
+    <type name="GreaterThanOrEqualExpression" base="BinaryExpression" />
+    <type name="NotEqualExpression" base="BinaryExpression" />
+    <type name="EqualExpression" base="BinaryExpression" />
+    <type name="InstanceNotEqualExpression" base="BinaryExpression" />
+    <type name="InstanceEqualExpression" base="BinaryExpression" />
+    <type name="InExpression" base="BinaryExpression" />
+    <type name="AdditionExpression" base="BinaryExpression" />
+    <type name="SubtractionExpression" base="BinaryExpression" />
+    <type name="OrExpression" base="BinaryExpression" />
+    <type name="XorExpression" base="BinaryExpression" />
+    <type name="MultiplicationExpression" base="BinaryExpression" />
+    <type name="DivisionExpression" base="BinaryExpression" />
+    <type name="IntegerDivisionExpression" base="BinaryExpression" />
+    <type name="ModuloExpression" base="BinaryExpression" />
+    <type name="AndExpression" base="BinaryExpression" />
+    <type name="ExponentiationExpression" base="BinaryExpression" />
+    <type name="LikeExpression" base="BinaryExpression" />
+    <type name="ComplexEntityConstructionExpression" base="BinaryExpression" />
+
+    <type name="UnaryExpression" base="Expression" abstract="true">
+        <property name="Operand" type="Expression" />
+    </type>
+
+    <type name="UnaryPlusExpression" base="UnaryExpression" />
+    <type name="UnaryMinusExpression" base="UnaryExpression" />
+    <type name="NotExpression" base="UnaryExpression" />
+
+    <type name="LiteralExpression" base="Expression" abstract="true" />
+
+    <type name="StringLiteral" base="LiteralExpression">
+        <property name="Value" type="string" />
+    </type>
+
+    <type name="IntegerLiteral" base="LiteralExpression">
+        <property name="Value" type="int" />
+    </type>
+
+    <type name="RealLiteral" base="LiteralExpression">
+        <property name="Value" type="double"/>
+    </type>
+
+    <type name="BinaryLiteral" base="LiteralExpression">
+        <property name="Value" type="byte[]" />
+    </type>
+
+    <type name="AggregateInitializerExpression" base="Expression">
+        <property name="Elements" type="AggregateInitializerElement" multiple="true"/>
+    </type>
+
+    <type name="AggregateInitializerElement">
+        <property name="Expression" type="Expression"/>
+        <property name="Repetition" type="Expression"/>
+    </type>
+
+    <type name="QueryExpression" base="Expression">
+        <property name="VariableDeclaration" type="VariableDeclaration" />
+        <property name="Aggregate" type="Expression"/>
+        <property name="Condition" type="Expression"/>
+    </type>
+
+    <type name="IntervalExpression" base="Expression">
+        <property name="Low" type="Expression"/>
+        <property name="LowComparison" type="IntervalComparison"/>
+        <property name="Item" type="Expression"/>
+        <property name="HighComparison" type="IntervalComparison"/>
+        <property name="High" type="Expression"/>
+    </type>
+
+    <type name="EntityConstructorExpression" base="Expression">
+        <property name="Entity" type="EntityReference" />
+        <property name="Paramaters" type="Expression" multiple="true" />
+    </type>
+
+    <type name="EnumerationReferenceExpression" base="Expression">
+        <property name="Type" type="TypeReference" />
+        <property name="Enumeration" type="EnumerationReference" />
+    </type>
+
+    <type name="ConstantReferenceExpression" base="Expression">
+        <property name="Constant" type="ConstantReference" />
+    </type>
+
+    <type name="ParameterReferenceExpression" base="Expression">
+        <property name="Parameter" type="ParameterReference" />
+    </type>
+
+    <type name="EntityReferenceExpression" base="Expression">
+        <property name="Entity" type="EntityReference" />
+    </type>
+
+    <type name="VariableReferenceExpression" base="Expression">
+        <property name="Variable" type="VariableReference" />
+    </type>
+
+    <type name="FunctionCallExpression" base="Expression">
+        <property name="Function" type="FunctionReference"/>
+        <property name="Parameters" type="Expression" multiple="true"/>
+    </type>
+
+    <type name="QualifiedExpression" base="Expression">
+        <property name="Expression" type="Expression"/>
+        <property name="Qualifiers" type="Qualifier" multiple="true"/>
+    </type>
+
+    <type name="AttributeReferenceExpression" base="Expression">
+        <property name="Attribute" type="AttributeReference" />
+    </type>
+
+    <!-- Statements -->
+    <type name="Statement" abstract="true" />
+
+    <type name="NullStatement" base="Statement" />
+
+    <type name="AliasStatement" base="Statement">
+        <property name="Variable" type="VariableDeclaration"/>
+        <property name="RenamedReference" type="QualifiedReference"/>
+    </type>
+
+    <type name="AssignmentStatement" base="Statement">
+        <property name="Left" type="QualifiedReference" />
+        <property name="Right" type="Expression" />
+    </type>
+
+    <type name="CaseStatement" base="Statement">
+        <property name="Selector" type="Expression" />
+        <property name="Actions" type="CaseAction" multiple="true"/>
+        <property name="DefaultAction" type="Statement"/>
+    </type>
+
+    <type name="CaseAction" base="Statement">
+        <property name="Labels" type="Expression" multiple="true"/>
+        <property name="Statement" type="Statement"/>
+    </type>
+
+    <type name="CompoundStatement" base="Statement">
+        <property name="Statements" type="Statement" multiple="true"/>
+    </type>
+
+    <type name="IfStatement" base="Statement">
+        <property name="Condition" type="Expression"/>
+        <property name="Statements" type="Statement" multiple="true"/>
+        <property name="ElseStatements" type="Statement" multiple="true"/>
+    </type>
+
+    <type name="ProcedureCallStatement" base="Statement">
+        <property name="Procedure" type="ProcedureReference"/>
+        <property name="Parameters" type="Expression" multiple="true"/>
+    </type>
+
+    <type name="RepeatStatement" base="Statement">
+        <property name="IncrementVariable" type="VariableDeclaration" />
+        <property name="IncrementFrom" type="Expression"/>
+        <property name="IncrementTo" type="Expression"/>
+        <property name="IncrementStep" type="Expression"/>
+        <property name="WhileCondition" type="Expression"/>
+        <property name="UntilCondition" type="Expression"/>
+        <property name="Statements" type="Statement" multiple="true"/>
+    </type>
+
+    <type name="ReturnStatement" base="Statement">
+        <property name="Expression" type="Expression" />
+    </type>
+
+    <type name="SkipStatement" base="Statement" />
+
+    <type name="EscapeStatement" base="Statement" />
+
+
+    <!-- Qualifiers -->
+
+    <type name="QualifiedReference">
+        <property name="Reference" type="Reference"/>
+        <property name="Qualifiers" type="Qualifier" multiple="true"/>
+    </type>
+
+    <type name="Qualifier" abstract="true" />
+
+    <type name="AttributeQualifier" base="Qualifier">
+        <property name="Attribute" type="AttributeReference"/>
+    </type>
+
+    <type name="GroupQualifier" base="Qualifier">
+        <property name="Entity" type="EntityReference"/>
+    </type>
+
+    <type name="IndexQualifier" base="Qualifier">
+        <property name="From" type="Expression" />
+        <property name="To" type="Expression" />
+    </type>
+
+    <!-- References -->
+    <type name="Reference" abstract="true"/>
+
+    <type name="SchemaReference" base="Reference">
+        <property name="SchemaName" type="string" />
+    </type>
+
+    <type name="TypeReference" base="Reference">
+        <property name="TypeName" type="string" />
+    </type>
+
+    <type name="EntityReference" base="Reference">
+        <property name="EntityName" type="string" />
+    </type>
+
+    <type name="AttributeReference" base="Reference">
+        <property name="AttributeName" type="string" />
+    </type>
+
+    <type name="UnresolvedReference" base="Reference">
+        <property name="UnresolvedName" type="string"/>
+    </type>
+    
+    <type name="ParameterReference" base="Reference">
+        <property name="ParameterName" type="string" />
+    </type>
+
+    <type name="VariableReference" base="Reference">
+        <property name="VariableName" type="string" />
+    </type>
+
+    <type name="EnumerationReference" base="Reference">
+        <property name="EnumerationName" type="string" />
+    </type>
+
+    <type name="ConstantReference" base="Reference">
+        <property name="ConstantName" type="string" />
+    </type>
+
+    <type name="FunctionReference" base="Reference">
+        <property name="FunctionName" type="string" />
+    </type>
+
+    <type name="ProcedureReference" base="Reference">
+        <property name="ProcedureName" type="string"/>
+    </type>
+
+    <type name="TypeLabelReference" base="Reference">
+        <property name="TypeLabelName" type="string" />
+    </type>
+
+    <!-- Bounds  -->
+    <type name="Bounds">
+        <property name="LowerBound" type="Expression" />
+        <property name="UpperBound" type="Expression" />
+    </type>
+
+
+    <!-- Type expressions -->
+    <type name="TypeExpression" abstract="true" />
+
+    <type name="AndTypeExpression" base="TypeExpression">
+        <property name="Left" type="TypeExpression"/>
+        <property name="Right" type="TypeExpression"/>
+    </type>
+
+    <type name="AndOrTypeExpression" base="TypeExpression">
+        <property name="Left" type="TypeExpression"/>
+        <property name="Right" type="TypeExpression"/>
+    </type>
+
+    <type name="OneOfTypeExpression" base="TypeExpression">
+        <property name="Expressions" type="TypeExpression" multiple="true"/>
+    </type>
+
+    <type name="EntityReferenceTypeExpression" base="TypeExpression">
+        <property name="Entity" type="EntityReference" />
+    </type>
+
+    <!-- other -->
+    <type name="InterfaceSpecification" abstract="true">
+        <property name="Schema" type="SchemaReference" />
+        <property name="References" type="Reference" multiple="true"/>
+    </type>
+
+    <type name="UseClause" base="InterfaceSpecification" />
+
+    <type name="ReferenceClause" base="InterfaceSpecification" />
+
+    <type name="RenamedReference" base="Reference">
+        <property name="Reference" type="Reference" />
+        <property name="Name" type="string" />
+    </type>
+
+
+
+</types>

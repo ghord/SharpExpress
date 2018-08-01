@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema
+    targetNamespace="http://hordynski.pl/SharpExpress/SyntaxNodes.xsd"
+    xmlns="http://hordynski.pl/SharpExpress/SyntaxNodes.xsd"
+    attributeFormDefault="unqualified"
+    elementFormDefault="qualified"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="types">
+        <xs:complexType>
+            <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="type" type="type" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="type">
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:choice>
+                <xs:element name="property" type="property"/>
+                <xs:element name="overrideProperty" type="overrideProperty" />
+            </xs:choice>
+        </xs:sequence>
+        <xs:attribute name="name" use="required" type="id" />
+        <xs:attribute name="base" use="optional" type="xs:string" />
+        <xs:attribute name="abstract" use="optional" type="true" />
+    </xs:complexType>
+
+    <xs:complexType name="property">
+        <xs:attribute name="name" use="required" type="id" />
+        <xs:attribute name="type" use="required" type="xs:string" />
+        <xs:attribute name="multiple" use="optional" type="true" />
+    </xs:complexType>
+
+    <xs:complexType name="overrideProperty">
+        <xs:attribute name="name" use="required" type="id" />
+        <xs:attribute name="value" use="required" type="xs:string" />
+    </xs:complexType>
+
+    <xs:simpleType name="true">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="true" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="id">
+      <xs:restriction base="xs:string">
+        <xs:minLength value="1"/>
+      </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>

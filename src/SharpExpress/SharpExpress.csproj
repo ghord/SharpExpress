@@ -1,0 +1,173 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{43133903-D348-43EA-8D9C-02067BA49941}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SharpExpress</RootNamespace>
+    <AssemblyName>SharpExpress</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>7.1</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>7.1</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.2.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.1.4.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.4.0\lib\net461\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Analysis\NumericExpressionEvaluator.cs" />
+    <Compile Include="Analysis\SemanticModelBuilder.cs" />
+    <Compile Include="Analysis\SymbolTable.cs" />
+    <Compile Include="BinaryLiteral.cs" />
+    <Compile Include="Builders\DebugDisplayNames.cs" />
+    <Compile Include="Builders\SyntaxNodeBuilder.cs" />
+    <Compile Include="Builders\SyntaxTreeBuilder.cs" />
+    <Compile Include="ConstantReference.cs" />
+    <Compile Include="Builders\ExpressionBuilder.cs" />
+    <Compile Include="FunctionReference.cs" />
+    <Compile Include="Generators\SyntaxNodes.Builders.cs">
+      <DependentUpon>SyntaxNodes.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\SyntaxNodes.ISyntaxNode.cs">
+      <DependentUpon>SyntaxNodes.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\SyntaxNodes.SyntaxNode.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SyntaxNodes.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\SyntaxNodes.Visitors.cs">
+      <DependentUpon>SyntaxNodes.tt</DependentUpon>
+    </Compile>
+    <Compile Include="IntegerLiteral.cs" />
+    <Compile Include="IntervalComparison.cs" />
+    <Compile Include="Parsing\ErrorRecoveryScope.cs" />
+    <Compile Include="Parsing\ErrorRecoveryException.cs" />
+    <Compile Include="Parsing\Errors.cs" />
+    <Compile Include="Parsing\DeclarationPass.cs" />
+    <Compile Include="Parsing\Keywords.cs" />
+    <Compile Include="Location.cs" />
+    <Compile Include="Parsing\ParserPass.cs" />
+    <Compile Include="Parsing\ParsingError.cs" />
+    <Compile Include="Parsing\ParsingException.cs" />
+    <Compile Include="Parsing\ParsingResult.cs" />
+    <Compile Include="Parsing\ExpressParser.cs" />
+    <Compile Include="Parsing\SyntaxAnalysisPass.cs" />
+    <Compile Include="ProcedureReference.cs" />
+    <Compile Include="RealLiteral.cs" />
+    <Compile Include="Parsing\Scope.cs" />
+    <Compile Include="Analysis\SemanticModel.cs" />
+    <Compile Include="Span.cs" />
+    <Compile Include="Parsing\Token.cs" />
+    <Compile Include="Parsing\Tokenizer.cs" />
+    <Compile Include="Parsing\TokenKind.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SimpleId.cs" />
+    <Compile Include="Parsing\LocationTextReader.cs" />
+    <Compile Include="TypeSystem\AttributeInfo.cs" />
+    <Compile Include="TypeSystem\ConstantInfo.cs" />
+    <Compile Include="TypeSystem\EntityInfo.cs" />
+    <Compile Include="TypeSystem\EnumerationInfo.cs" />
+    <Compile Include="TypeSystem\FunctionInfo.cs" />
+    <Compile Include="TypeSystem\ISymbolInfo.cs" />
+    <Compile Include="TypeSystem\ParameterInfo.cs" />
+    <Compile Include="TypeSystem\ProcedureInfo.cs" />
+    <Compile Include="TypeSystem\RuleInfo.cs" />
+    <Compile Include="TypeSystem\SchemaInfo.cs" />
+    <Compile Include="TypeSystem\TypeInfo.cs" />
+    <Compile Include="Analysis\SymbolTableBuilder.cs" />
+    <Compile Include="TypeSystem\VariableInfo.cs" />
+    <Compile Include="Utilities\FastBinaryReader.cs" />
+    <Compile Include="Step\EntityValue.cs" />
+    <Compile Include="Step\IntegerValue.cs" />
+    <Compile Include="Step\KeywordStringBuilder.cs" />
+    <Compile Include="Step\ListValue.cs" />
+    <Compile Include="Step\RealValue.cs" />
+    <Compile Include="Step\StepAttributeAttribute.cs" />
+    <Compile Include="Step\StepConvert.cs" />
+    <Compile Include="Step\StepConvertSettings.cs" />
+    <Compile Include="Step\EnumerationValue.cs" />
+    <Compile Include="Step\StepFileDescription.cs" />
+    <Compile Include="Step\StepDataSection.cs" />
+    <Compile Include="Step\StepEntityParser.cs" />
+    <Compile Include="Step\StepFileName.cs" />
+    <Compile Include="Step\StepFilePopulation.cs" />
+    <Compile Include="Step\StepFileSchema.cs" />
+    <Compile Include="Step\StepHeader.cs" />
+    <Compile Include="Step\StepSectionContext.cs" />
+    <Compile Include="Step\StepSectionLanguage.cs" />
+    <Compile Include="Step\StepTokenizer.cs" />
+    <Compile Include="Step\StepValue.cs" />
+    <Compile Include="Step\StringValue.cs" />
+    <Compile Include="Step\TypedValue.cs" />
+    <Compile Include="Step\ValidatingStepParser.cs" />
+    <Compile Include="Step\StepEntity.cs" />
+    <Compile Include="Step\StepParser.cs" />
+    <Compile Include="SyntaxList.cs" />
+    <Compile Include="SyntaxNode.cs" />
+    <Compile Include="SyntaxNodeVisitor.cs" />
+    <Compile Include="SyntaxNodeWalker.cs" />
+    <Compile Include="Utilities\ArrayPeekEnumerator.cs" />
+    <Compile Include="Utilities\BufferedPeekEnumerator.cs" />
+    <Compile Include="Utilities\FastStringBuilder.cs" />
+    <Compile Include="Utilities\Number.cs" />
+    <Compile Include="Utilities\PeekEnumerator.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+    <None Include="Generators\SyntaxNodes.xsd">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Generators\SyntaxNodes.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Generators\MultiOutput.tt" />
+    <Content Include="Generators\SyntaxNodes.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SyntaxNodes.SyntaxNode.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

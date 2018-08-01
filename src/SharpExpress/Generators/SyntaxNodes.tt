@@ -1,0 +1,704 @@
+<#@ template language="C#" hostspecific="true" debug="false" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Xml" #>
+<#@ assembly name="System.Xml.Linq" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Xml.Linq" #>
+<#@ import namespace="System.Xml" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension="SyntaxNode.cs"  #>
+<#@ include file="MultiOutput.tt" #>using System.Collections.Generic;
+using System;
+using System.Linq;
+using System.Collections.Immutable;
+
+namespace SharpExpress.Builders
+{
+<# WriteNodeBuilders(); #>
+}
+
+<# SaveOutput("SyntaxNodes.Builders.cs"); #>
+using System;
+using System.Collections.Generic;
+
+namespace SharpExpress
+{
+<# WriteInterfaces(); #>
+}
+
+
+<# SaveOutput("SyntaxNodes.ISyntaxNode.cs"); #>
+
+
+namespace SharpExpress
+{
+<# WriteVisitors(); #>
+}
+
+<# SaveOutput("SyntaxNodes.Visitors.cs");
+#>
+using System;
+using System.Collections.Immutable;
+using System.Collections.Generic;
+
+namespace SharpExpress
+{
+<# WriteGreenNodes(); #>
+}
+<# DeleteOldOutputs(); #>
+
+<#+
+	
+
+private void WriteVisitors()
+{
+	PushIndent();
+    using(var reader = new XmlTextReader(Host.ResolvePath("SyntaxNodes.xml")))
+    {
+        reader.Namespaces = false;
+        var document = XDocument.Load(reader);
+
+		var nonAbstractNodes = document.Root.Elements("type").Where(e => e.Attribute("abstract") == null);
+      
+		WriteVisitor(nonAbstractNodes);
+		WriteGenericVisitor(nonAbstractNodes);
+    }
+    PopIndent();
+}
+
+private void WriteGreenNodes()
+{
+    PushIndent();
+    using(var reader = new XmlTextReader(Host.ResolvePath("SyntaxNodes.xml")))
+    {
+        reader.Namespaces = false;
+        var document = XDocument.Load(reader);
+
+		var nonAbstractNodes = document.Root.Elements("type").Where(e => e.Attribute("abstract") == null);
+
+		var baseNodes = document.Root.Elements("type").ToDictionary(
+			e => e.Attribute("name").Value,
+			e => e.Attribute("base") != null ? e.Attribute("base").Value : null
+		);
+
+
+        WriteSyntaxNodeKind(nonAbstractNodes);
+
+        foreach(var element in document.Root.Elements("type"))
+        {
+            WriteGreeNode(element, baseNodes);
+        }
+    }
+    PopIndent();
+}
+
+private void WriteInterfaces()
+{
+    PushIndent();
+    using(var reader = new XmlTextReader(Host.ResolvePath("SyntaxNodes.xml")))
+    {
+        reader.Namespaces = false;
+        var document = XDocument.Load(reader);
+
+		var baseNodes = document.Root.Elements("type").ToDictionary(
+			e => e.Attribute("name").Value,
+			e => e.Attribute("base") != null ? e.Attribute("base").Value : null
+		);
+
+        foreach(var element in document.Root.Elements("type"))
+        {
+            WriteInterface(element, baseNodes);
+        }
+    }
+    PopIndent();
+}
+
+private void WriteVisitor(IEnumerable<XElement> elements)
+{
+	WriteLine("public partial class SyntaxNodeVisitor");
+	WriteLine("{");
+
+	PushIndent();
+
+	foreach(var element in elements)
+	{
+		var elementName=  element.Attribute("name").Value;
+
+		WriteLine($"public virtual void Visit{elementName}({elementName} {ToCamelCase(elementName)})");
+		WriteLine("{");
+		PushIndent();
+		WriteLine($"DefaultVisit({ToCamelCase(elementName)});");
+		PopIndent();
+		WriteLine("}");
+		WriteLine();
+	}
+
+	PopIndent();
+
+	WriteLine("}");
+	WriteLine();
+}
+
+
+private void WriteGenericVisitor(IEnumerable<XElement> elements)
+{
+	WriteLine("public partial class SyntaxNodeVisitor<TResult>");
+	WriteLine("{");
+
+	PushIndent();
+
+	foreach(var element in elements)
+	{
+		var elementName=  element.Attribute("name").Value;
+
+		WriteLine($"public virtual TResult Visit{elementName}({elementName} {ToCamelCase(elementName)})");
+		WriteLine("{");
+		PushIndent();
+		WriteLine($"return DefaultVisit({ToCamelCase(elementName)});");
+		PopIndent();
+		WriteLine("}");
+		WriteLine();
+	}
+
+	PopIndent();
+
+	WriteLine("}");
+	WriteLine();
+}
+
+private void WriteSyntaxNodeKind(IEnumerable<XElement> elements)
+{
+    WriteLine("public enum SyntaxNodeKind");
+    WriteLine("{");
+    PushIndent();
+	WriteLine("SyntaxList,");
+
+    foreach(var element in elements)
+    {
+        WriteLine(element.Attribute("name").Value + ",");
+    }
+
+    PopIndent();
+    WriteLine("}");
+    WriteLine();
+}
+
+private void WriteGreeNode(XElement element, Dictionary<string, string> baseNodes)
+{
+    bool isAbstract = element.Attribute("abstract") != null;
+    var className = element.Attribute("name").Value;
+    var baseClass = element.Attribute("base")!= null ? element.Attribute("base").Value : "SyntaxNode";
+
+    Write("public ");
+    Write(isAbstract ? "abstract " :  "sealed ");
+    Write("partial class ");
+    Write(className);
+    
+    
+    Write(" : " + baseClass + ", I" + className);
+
+
+    
+    WriteLine();
+
+    WriteLine("{");
+    PushIndent();
+
+    WriteConstructor(isAbstract, baseClass, className, element);
+
+    WriteProperties(element, baseNodes);
+
+
+	if(!isAbstract)
+		WriteSlots(element, baseNodes);
+
+	if(!isAbstract)
+		WriteVisitorCode(className);
+    
+    WritePropertyImplementations(element, className, baseNodes);
+
+    PopIndent();
+    WriteLine("}");
+
+    WriteLine();
+}
+
+
+private void WriteInterface(XElement element, Dictionary<string, string> baseNodes)
+{
+    var className = element.Attribute("name").Value;
+    var baseClass = element.Attribute("base")!= null ? element.Attribute("base").Value : null;
+
+    Write("interface I");
+    Write(className);
+    
+    if(baseClass != null)
+        Write(" : I" + baseClass);
+    
+    WriteLine();
+
+    WriteLine("{");
+    PushIndent();
+
+    WriteInterfaceProperties(element, baseNodes);
+
+    PopIndent();
+    WriteLine("}");
+
+    WriteLine();
+}
+
+private void WriteSlots(XElement element, Dictionary<string, string> baseNodes)
+{
+	var overrides = GetOverrides(element);
+
+	int slots = 0;
+
+	WriteLine("public override SyntaxNode GetSlot(int slot)");
+	WriteLine("{");
+	PushIndent();
+	WriteLine("switch(slot)");
+	WriteLine("{");
+	PushIndent();
+	foreach(var property in GetProperties(element, false))
+	{
+		var propertyName = property.Attribute("name").Value;
+		if(!baseNodes.ContainsKey(property.Attribute("type").Value))
+			continue;
+
+		WriteLine($"case {slots}: return {propertyName};");
+		slots++;
+	}
+
+	WriteLine("default: throw new ArgumentOutOfRangeException(nameof(slot));");
+
+	PopIndent();
+	WriteLine("}");
+	PopIndent();
+	WriteLine("}");
+	WriteLine();
+	WriteLine($"public override int SlotCount => {slots};");
+}
+
+private void WriteProperties(XElement element, Dictionary<string, string> baseNodes)
+{
+    foreach(var property in element.Elements("property"))
+    {
+        Write("public ");
+
+        var propertyName = property.Attribute("name").Value;
+
+        WritePropertyType(property);
+
+        Write(propertyName);
+        WriteLine(" { get; }");
+        WriteLine();
+    }
+}
+
+private void WritePropertyImplementations(XElement element, string className, Dictionary<string, string> baseNodes)
+{
+    foreach(var property in element.Elements("property"))
+    {
+        var propertyName = property.Attribute("name").Value;
+
+        WriteLine();
+
+        WriteInterfacePropertyType(property, baseNodes);
+
+        WriteLine($"I{className}.{propertyName} => {propertyName};");
+        
+    }
+}
+
+private void WriteInterfaceProperties(XElement element, Dictionary<string, string> baseNodes)
+{
+    foreach(var property in element.Elements("property"))
+    {
+        WriteInterfacePropertyType(property, baseNodes);
+
+        Write(property.Attribute("name").Value);
+        WriteLine(" { get; }");
+    }
+}
+
+private void WriteConstructor(bool isAbstract, string baseClass, string className, XElement element)
+{
+    WriteConstructorHeader(isAbstract, className, element);
+    WriteConstructorBase(isAbstract, className, baseClass, element);
+    WriteConstructorBody(element);
+}
+
+private void WriteConstructorBody(XElement element)
+{
+    WriteLine("{");
+    PushIndent();
+    foreach(var property in element.Elements("property"))
+    {
+        Write(property.Attribute("name").Value);
+        Write(" = ");
+        Write(ToCamelCase(property.Attribute("name").Value));
+        WriteLine(";");
+    }
+    PopIndent();
+    WriteLine("}");
+}
+
+private string ToCamelCase(string identifier)
+{
+    return char.ToLower(identifier[0]) + identifier.Substring(1);
+}
+
+private void WriteConstructorHeader(bool isAbstract, string className, XElement element)
+{
+    Write(isAbstract ? "internal " : "public ");
+    Write(className);
+    Write("(");
+    
+    bool afterFirstParameter = false;
+
+    if(isAbstract)
+    {
+        Write("SyntaxNodeKind kind");
+        afterFirstParameter = true;
+    }
+
+    var overrides = GetOverrides(element);
+
+    foreach(var property in GetProperties(element, false))
+    {
+        if(overrides.ContainsKey(property.Attribute("name").Value))
+            continue;
+
+        if(afterFirstParameter) Write(", ");
+        
+        WritePropertyType(property);
+        Write(ToCamelCase(property.Attribute("name").Value));
+
+        afterFirstParameter = true;
+    }
+
+    Write(")");
+
+    WriteLine();
+}
+
+private void WriteConstructorBase(bool isAbstract, string className, string baseClass, XElement element)
+{
+    if(baseClass != null)
+    {
+        Write("    : base(");
+
+        if(isAbstract)
+            Write("kind");
+        else
+            Write("SyntaxNodeKind." + className);
+
+        var overrides = GetOverrides(element);
+
+        foreach(var property in GetProperties(element, true))
+        {
+            Write(", ");
+
+            var propertyName = property.Attribute("name").Value;
+            string propertyOverride;
+            if(overrides.TryGetValue(propertyName, out propertyOverride))
+            {
+                Write(propertyOverride);
+            }
+            else
+            {
+                Write(ToCamelCase(propertyName));
+            }
+        }
+
+        WriteLine(")");
+    }
+}
+
+private Dictionary<string, string> GetOverrides(XElement element)
+{
+    var ancestors = GetAncestorsAndSelf(element).ToArray();
+    var overrides = new Dictionary<string, string>();
+
+    foreach(var ancestor in ancestors)
+    {
+        foreach(var propertyOverride in ancestor.Elements("overrideProperty"))
+        {
+            overrides.Add(propertyOverride.Attribute("name").Value,
+                          propertyOverride.Attribute("value").Value);
+        }
+    }
+
+    return overrides;
+}
+
+private IEnumerable<XElement> GetAncestorsAndSelf(XElement element)
+{
+    while(element != null)
+    {
+        yield return element;
+
+        var baseClass = element.Attribute("base");
+        if(baseClass == null)
+            yield break;
+
+        
+        element = element.Document.Root.Elements("type").SingleOrDefault(
+            e => e.Attribute("name").Value.Equals(baseClass.Value));
+    }
+}
+
+private void WritePropertyType(XElement property)
+{
+    var propertyType = property.Attribute("type").Value;
+
+    if(property.Attribute("multiple") != null)
+    {
+        Write("SyntaxList<" + propertyType + "> ");
+    }
+    else
+    {
+        Write(propertyType + " ");
+    }
+}
+
+        
+private void WriteInterfacePropertyType(XElement property, Dictionary<string, string> baseNodes)
+{
+    var propertyType = property.Attribute("type").Value;
+
+    if(baseNodes.ContainsKey(propertyType))
+        propertyType = "I" + propertyType;
+
+    if(property.Attribute("multiple") != null)
+    {
+        Write("IEnumerable<" + propertyType + "> ");
+    }
+    else
+    {
+        Write(propertyType + " ");
+    }
+}
+
+private void WriteVisitorCode(string className)
+{
+
+    WriteLine("public override void Accept(SyntaxNodeVisitor visitor)");
+    WriteLine("{");
+    PushIndent();
+    WriteLine("visitor.Visit" + className + "(this);");
+    PopIndent();
+    WriteLine("}");
+    WriteLine();
+    
+    WriteLine("public override T Accept<T>(SyntaxNodeVisitor<T> visitor)");
+    WriteLine("{");
+    PushIndent();
+    WriteLine("return visitor.Visit" + className + "(this);");
+    PopIndent();
+    WriteLine("}");
+}
+
+private void WriteLine()
+{
+    WriteLine("");
+}
+
+private void PushIndent()
+{
+    PushIndent("    ");
+}
+
+
+private void WriteNodeBuilders()
+{
+    PushIndent();
+    using(var reader = new XmlTextReader(Host.ResolvePath("SyntaxNodes.xml")))
+    {
+        reader.Namespaces = false;
+        var document = XDocument.Load(reader);
+
+		var baseNodes = document.Root.Elements("type").ToDictionary(
+				e => e.Attribute("name").Value,
+				e => e.Attribute("base") != null ? e.Attribute("base").Value : null
+			);
+
+        foreach(var element in document.Root.Elements("type"))
+        {
+            WriteBuilder(element, baseNodes);
+        }
+    }
+    PopIndent();
+}
+
+
+private void WriteBuilder(XElement element, Dictionary<string, string> baseNodes)
+{
+    bool isAbstract = element.Attribute("abstract") != null;
+	var nodeName = element.Attribute("name").Value;
+    var className = nodeName + "Builder" ;
+    var baseClass = element.Attribute("base") != null ? 
+		(element.Attribute("base").Value + "Builder"): 
+		("SyntaxNodeBuilder<" + nodeName + ">");
+
+
+	if(isAbstract)
+		Write("abstract ");
+    Write("partial class ");
+    Write(className);
+    
+    if(baseClass != null)
+        Write(" : " + baseClass + ", I" + nodeName);
+    
+    WriteLine();
+
+    WriteLine("{");
+    PushIndent();
+   
+    WriteBuilderProperties(element, baseNodes);
+
+    WriteBuildCode(isAbstract, baseClass != null, element, baseNodes);
+
+    WritePropertyImplementations(element, nodeName, baseNodes);
+
+    PopIndent();
+    WriteLine("}");
+
+    WriteLine();
+}
+
+private void WriteBuilderProperties(XElement element, Dictionary<string, string> baseNodes)
+{
+    foreach(var property in element.Elements("property"))
+    {
+		var multiple = property.Attribute("multiple") != null;
+		var propertyType = GetPropertyType(property, baseNodes);
+        Write("public ");
+
+		if(multiple)
+			Write("List<" + propertyType + "> ");
+		else
+			Write(propertyType + " ");
+
+        Write(property.Attribute("name").Value);
+
+		if(multiple)
+			WriteLine(" { get; } = new List<" + propertyType + ">();");
+		else
+			WriteLine(" { get; set; }");
+    }
+}
+
+
+private IEnumerable<XElement> GetProperties(XElement element, bool onlyInherited)
+{
+    var ancestors =  GetAncestorsAndSelf(element);
+
+    if(onlyInherited)
+        ancestors = ancestors.Skip(1);
+
+    foreach(var ancestor in ancestors.Reverse())
+    {
+        foreach(var property in ancestor.Elements("property"))
+        {
+            yield return property;
+        }
+    }
+}
+
+private string GetPropertyType(XElement property, Dictionary<string, string> baseNodes)
+{
+    var propertyType = property.Attribute("type").Value;
+
+	if(baseNodes.ContainsKey(propertyType))
+		propertyType += "Builder";
+
+	return propertyType;
+}
+
+private void WriteBuildCode(bool isAbstract, bool hasBase, XElement element, Dictionary<string, string> baseNodes)
+{
+    if(!isAbstract && hasBase)
+    {
+		var nodeName = element.Attribute("name").Value;
+		var className = nodeName;
+        Write("public override ");
+
+		while(baseNodes[nodeName] != null)
+			nodeName = baseNodes[nodeName];
+
+		Write(nodeName);
+		WriteLine(" Build()");
+        WriteLine("{");
+        PushIndent();
+        
+		WriteLine($"return new {className}(");
+
+		PushIndent();
+
+		var overrides = GetOverrides(element);
+
+		bool first = true;
+
+
+		foreach(var property in GetProperties(element, false))
+		{
+			var propertyName = property.Attribute("name").Value;
+
+			if(overrides.ContainsKey(propertyName))
+				continue;
+
+			if(first) first = false;
+			else WriteLine(",");
+
+			var propertyType = property.Attribute("type").Value;
+			
+			if(baseNodes.ContainsKey(propertyType))
+			{
+				if(property.Attribute("multiple")?.Value != null)
+				{
+					Write($"SyntaxList.Create(");
+					Write($"{propertyName}.Select(n => n.Build())");
+					
+					if(baseNodes.TryGetValue(propertyType, out var baseType) && baseType != null)
+						Write($".Cast<{propertyType}>()");
+
+					Write(")");
+
+				}
+				else
+				{
+					if(baseNodes.TryGetValue(propertyType, out var baseType) && baseType != null)
+						Write($"({propertyType}) ");
+
+					Write($"{propertyName}?.Build()");
+				}
+			}
+			else
+			{
+				if(property.Attribute("multiple")?.Value != null)
+				{
+					Write($"{propertyName}.ToImmutableArray()");
+				}
+				else
+				{
+					Write(propertyName);
+				}
+			}
+		}
+
+		WriteLine(");");
+
+		PopIndent();
+
+        PopIndent();
+        WriteLine("}");
+    }
+}
+
+
+#>
+
+
